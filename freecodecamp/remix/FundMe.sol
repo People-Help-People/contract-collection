@@ -7,6 +7,7 @@ import '@openzeppelin/contracts/utils/math/SafeMath.sol';
 
 contract FundMe {
     
+    // uint256 constant DECIMAL = 10**8;
     address[] public funders;
     address public owner;
     
@@ -15,23 +16,27 @@ contract FundMe {
     }
     
     mapping(address => uint256) public addressToFunds;
+
+    function printFund () public payable returns(uint256){
+        return getConversionRate(msg.value);
+    }
     
     function fund () public payable {
-        uint256 minimumAmount = 50 * 10 * 18 ; // in USD
+        uint256 minimumAmount = 0.0001 * 10**8 ; // in USD
         require(getConversionRate(msg.value)>=minimumAmount,"You need to send more ETH!!!");
         if(addressToFunds[msg.sender]!=0) funders.push(msg.sender);
         addressToFunds[msg.sender]+=msg.value;
     }
     
     function getPrice () public view returns (uint256) {
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(0x8A753747A1Fa494EC906cE90E9f37563A8AF630e);
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada);
         (,int256 answer,,,) = priceFeed.latestRoundData();
-        return uint256(answer*10**9);
+        return uint256(answer);
     }
     
     function getConversionRate(uint256 _input) public view returns (uint256) {
         uint256 curValue = getPrice();
-        return (_input * curValue)/10**18;
+        return (_input * curValue)/(10**18);
     }
     
     modifier OnlyOwner {
